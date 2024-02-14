@@ -1,0 +1,6 @@
+.env.local
+node_modules
+
+# Editor directories and files
+.idea
+.DS_Store

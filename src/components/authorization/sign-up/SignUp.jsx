@@ -1,27 +1,39 @@
-import { selectAuthData, setUser, setUserPwd, setUserEmail, setSignUpErrMsg, setLoading } from "../../../features/auth/authSlice";
-import { Alert, Button, CircularProgress, Stack, TextField, Typography } from '@mui/material';
+import { selectData, setErrMsg, setLoading, saveCreatedUser, setUserEmail, setUserPwd, setOpen } from 'features/auth/sign_up/signUpSlice';
+import { Alert, Button, CircularProgress, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
-    const dispatch = useDispatch()
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
-    const { signUpErrMsg, userEmail, pwd, loading } = useSelector(selectAuthData)
+    const { errMsg, userEmail, userPwd, loading, open } = useSelector(selectData)
+
+    const closeSnackbar = (_, reason) => {
+        if (reason === 'clickaway') return
+
+        dispatch(setOpen(false))
+    };
+
+    const openSnackbar = () => {
+        dispatch(setOpen(true));
+    };
 
     const handleSignUp = async (email, password) => {
-        setLoading(true);
+        dispatch(setLoading(true))
         const auth = getAuth();
+
         try {
             const { user } = await createUserWithEmailAndPassword(auth, email, password);
-            console.log(user);
-            dispatch(setUser({
+            localStorage.setItem("user", JSON.stringify({ email }));
+
+            dispatch(saveCreatedUser({
                 email: user.email,
                 id: user.uid,
                 token: user.accessToken,
             }));
-            navigate('/');
+            navigate('/login');
             dispatch(setUserEmail(""));
             dispatch(setUserPwd(""));
         } catch (err) {
@@ -34,63 +46,67 @@ const SignUp = () => {
                 errorMessage = "Invalid email or empty field. Please try again.";
             } else errorMessage = "An unexpected error occurred. Please try again.";
 
+            dispatch(setErrMsg(errorMessage));
             console.warn(err);
-            dispatch(setSignUpErrMsg(errorMessage));
         } finally {
-            setLoading(false);
+            dispatch(setLoading(false));
         }
     };
 
     return (
-        loading ? <CircularProgress /> : (
-            <>
-                <Typography
-                    variant="h5"
-                    color="red"
-                    letterSpacing={1}
+        loading ? <CircularProgress /> : <>
+            <Snackbar open={open} autoHideDuration={3500} onClose={closeSnackbar}>
+                <Alert
+                    onClose={closeSnackbar}
+                    severity="error"
+                    variant="filled"
+                    sx={{ fontSize: 18, mb: 4 }}
                 >
-                    {signUpErrMsg && <Alert sx={{ fontSize: 19, mb: 4 }} variant="filled" severity="error">{signUpErrMsg}</Alert>}
-                </Typography>
-                <Stack spacing={3}>
-                    <TextField
-                        fullWidth
-                        variant="filled"
-                        label="Email"
-                        type="email"
-                        value={userEmail}
-                        onChange={(e) => dispatch(setUserEmail(e.target.value))}
-                    />
-                    <TextField
-                        fullWidth
-                        variant="filled"
-                        label="Password"
-                        type="password"
-                        value={pwd}
-                        onChange={(e) => dispatch(setUserPwd(e.target.value))}
-                    />
-                </Stack>
-                <Button
+                    {errMsg}
+                </Alert>
+            </Snackbar>
+            <Stack spacing={3}>
+                <TextField
                     fullWidth
-                    sx={{ marginY: 3 }}
+                    variant="filled"
+                    label="Email"
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => dispatch(setUserEmail(e.target.value))}
+                />
+                <TextField
+                    fullWidth
+                    variant="filled"
+                    label="Password"
+                    type="password"
+                    value={userPwd}
+                    onChange={(e) => dispatch(setUserPwd(e.target.value))}
+                />
+            </Stack>
+            <Button
+                fullWidth
+                sx={{ marginY: 3 }}
+                color="success"
+                variant="contained"
+                onClick={() => {
+                    handleSignUp(userEmail, userPwd)
+                    openSnackbar()
+                }}
+            >
+                Register
+            </Button>
+            <Typography variant="body1" sx={{ letterSpacing: 1 }}>
+                Already registered?
+                <Button
+                    onClick={() => navigate("/login")}
+                    sx={{ marginLeft: 2 }}
                     color="success"
                     variant="contained"
-                    onClick={() => handleSignUp(userEmail, pwd)}
                 >
-                    {loading ? <CircularProgress color="inherit" size={35} /> : "Register"}
+                    Sign In
                 </Button>
-                <Typography variant="body1" sx={{ letterSpacing: 1 }}>
-                    Already registered?
-                    <Button
-                        onClick={() => navigate("/login")}
-                        sx={{ marginLeft: 2 }}
-                        color="success"
-                        variant="contained"
-                    >
-                        Sign In
-                    </Button>
-                </Typography>
-            </>
-        )
+            </Typography>
+        </>
     )
 }
 

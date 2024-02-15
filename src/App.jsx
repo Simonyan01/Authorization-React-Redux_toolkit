@@ -1,5 +1,4 @@
-import Router from './routes/Router';
-import "./App.css"
+import Router from 'routes/Router';
 import { Box } from '@mui/material';
 
 const App = () => {

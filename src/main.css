@@ -23,7 +23,7 @@ body {
   background-image: linear-gradient(
     to top right in oklab,
     oklch(100% 0.5 109) 0%,
-    oklch(70% 0.5 100) 100%
+    oklch(70% 0.5 80) 100%
   );
 }
 

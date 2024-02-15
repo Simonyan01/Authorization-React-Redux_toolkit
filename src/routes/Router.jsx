@@ -1,7 +1,7 @@
 import { Route, Routes, useRoutes } from "react-router-dom"
-import UserAccount from "../components/account/UserAccount";
-import SignUp from "../components/authorization/sign-up/SignUp";
-import SignIn from "../components/authorization/login/SignIn";
+import SignUp from "components/authorization/sign-up/SignUp";
+import SignIn from "components/authorization/sign-in/SignIn";
+import UserAccount from "components/account/UserAccount";
 
 const Router = () => {
     const element = useRoutes([

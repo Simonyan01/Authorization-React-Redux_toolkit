@@ -14,7 +14,8 @@
       "features/*": ["src/features/*"],
       "assets/*": ["src/assets/*"],
       "routes/*": ["src/routes/*"],
-      "hooks/*": ["src/hooks/*"]
+      "hooks/*": ["src/hooks/*"],
+      "api/*": ["src/api/*"]
     }
   }
 }

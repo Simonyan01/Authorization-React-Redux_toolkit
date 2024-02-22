@@ -13,6 +13,7 @@ export default defineConfig({
       routes: "/src/routes",
       assets: "/src/assets",
       hooks: "/src/hooks",
+      api: "/src/api",
     },
   },
 })

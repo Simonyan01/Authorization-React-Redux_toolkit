@@ -3,8 +3,8 @@ import { createSlice } from '@reduxjs/toolkit';
 export const selectData = state => state.signIn
 
 const initialState = {
-    userPwd: '',
     userEmail: '',
+    userPwd: '',
     errMsg: '',
     loading: false,
     open: false

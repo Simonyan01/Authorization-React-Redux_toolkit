@@ -1,5 +1,5 @@
 {
-  "name": "login_form",
+  "name": "authorization",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,17 +11,22 @@
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-brands-svg-icons": "^6.5.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
     "@reduxjs/toolkit": "^2.1.0",
     "axios": "^1.6.7",
     "firebase": "^10.8.0",
-    "json-server": "^1.0.0-alpha.23",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-images-uploading": "^3.1.7",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.22.0",
-    "sass": "^1.70.0"
+    "sass": "^1.70.0",
+    "swiper": "^11.0.6",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

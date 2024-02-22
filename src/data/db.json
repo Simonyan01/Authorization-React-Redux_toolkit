@@ -1,15 +1,4 @@
 {
-  "register": [
-    {
-      "id": "6477",
-      "user": "asf",
-      "pwd": "asfas"
-    },
-    {
-      "id": "0910",
-      "user": "asfasf",
-      "pwd": "asfasfas"
-    }
-  ],
+  "register": [],
   "login": []
 }

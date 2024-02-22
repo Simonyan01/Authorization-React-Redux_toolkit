@@ -16,16 +16,18 @@ const SignIn = () => {
         dispatch(setOpen(false))
     };
 
-    // const openSnackbar = () => {
-    //     dispatch(setOpen(true));
-    // };
-
     const handleSignIn = async (email, password) => {
-        dispatch(setLoading(true));
         const auth = getAuth();
+
+        dispatch(setLoading(true))
+        setTimeout(() => {
+            dispatch(setOpen(true));
+        }, 1000);
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            localStorage.setItem("user", JSON.stringify({ email }));
+
             navigate('/');
             dispatch(setUserEmail(""));
             dispatch(setUserPwd(""));
@@ -42,56 +44,64 @@ const SignIn = () => {
             dispatch(setErrMsg(errorMessage));
             console.warn(err);
         } finally {
-            dispatch(setLoading(false));
+            dispatch(setLoading(false))
         }
     }
 
-    return <>
-        <Snackbar open={open} autoHideDuration={3500} onClose={closeSnackbar}>
-            <Alert
-                onClose={closeSnackbar}
-                severity="error"
-                variant="filled"
-                sx={{ fontSize: 18, mb: 4 }}
-            >
-                {errMsg}
-            </Alert>
-        </Snackbar>
-        <Box sx={{ marginBottom: 4, display: "grid", gap: 3 }}>
-            <TextField
-                fullWidth
-                variant="filled"
-                label="Email"
-                type="email"
-                value={userEmail}
-                onChange={(e) => dispatch(setUserEmail(e.target.value))}
-            />
-            <TextField
-                fullWidth
-                variant="filled"
-                label="Password"
-                type="password"
-                value={userPwd}
-                onChange={(e) => dispatch(setUserPwd(e.target.value))}
-            />
-        </Box>
-        <Box className="flex justify-center items-center gap-4">
-            <Button
-                onClick={() => {
-                    handleSignIn(userEmail, userPwd)
-                    // openSnackbar()
-                }}
-                variant="contained"
-                color="success"
-            >
-                {loading ? <CircularProgress color="inherit" size={30} /> : "Log In"}
-            </Button>
-            OR
-            <Button variant="outlined" color="success">
-                <Link to="/register">Sign up</Link>
-            </Button>
-        </Box>
-    </>
+    return (
+        loading ? (
+            <Box className="bg-white/65 p-5 rounded-3xl shadow-lg">
+                <CircularProgress color="success" size={50} />
+            </Box>
+        ) : (
+            <Box className="bg-white/65 p-8 rounded-xl shadow-lg">
+                {errMsg && (
+                    <Snackbar open={open} autoHideDuration={4000} onClose={closeSnackbar}>
+                        <Alert
+                            severity="error"
+                            variant="filled"
+                            sx={{ fontSize: 18, mb: 4 }}
+                        >
+                            {errMsg}
+                        </Alert>
+                    </Snackbar>
+                )}
+                <Box sx={{ marginBottom: 4, display: "grid", gap: 3 }}>
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Email"
+                        type="email"
+                        value={userEmail}
+                        onChange={(e) => dispatch(setUserEmail(e.target.value))}
+                    />
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Password"
+                        type="password"
+                        value={userPwd}
+                        onChange={(e) => dispatch(setUserPwd(e.target.value))}
+                    />
+                </Box>
+                <Box className="flex justify-center items-center gap-4">
+                    <Button
+                        onClick={() => {
+                            handleSignIn(userEmail, userPwd)
+                        }}
+                        variant="contained"
+                        color="success"
+                    >
+                        {loading ? <CircularProgress color="inherit" size={30} /> : "Log In"}
+                    </Button>
+                    OR
+                    <Button variant="outlined" color="success">
+                        <Link to="/register">Sign up</Link>
+                    </Button>
+                </Box>
+            </Box>
+        )
+    )
 }
 
 export default SignIn

@@ -1,12 +1,14 @@
-import { selectData, setErrMsg, setLoading, saveCreatedUser, setUserEmail, setUserPwd, setOpen } from 'features/auth/sign_up/signUpSlice';
-import { Alert, Button, CircularProgress, Snackbar, Stack, TextField, Typography } from '@mui/material';
+import { selectData, setErrMsg, setLoading, setUserEmail, setUserPwd, setOpen, saveCreatedUser } from 'features/auth/sign_up/signUpSlice';
+import { Alert, Box, Button, CircularProgress, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom";
+import { useAuth } from 'hooks/use-auth';
 
 const SignUp = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch()
+    const { isAuth } = useAuth()
 
     const { errMsg, userEmail, userPwd, loading, open } = useSelector(selectData)
 
@@ -16,13 +18,14 @@ const SignUp = () => {
         dispatch(setOpen(false))
     };
 
-    const openSnackbar = () => {
-        dispatch(setOpen(true));
-    };
 
     const handleSignUp = async (email, password) => {
-        dispatch(setLoading(true))
         const auth = getAuth();
+
+        dispatch(setLoading(true))
+        setTimeout(() => {
+            dispatch(setOpen(true));
+        }, 1000);
 
         try {
             const { user } = await createUserWithEmailAndPassword(auth, email, password);
@@ -35,7 +38,7 @@ const SignUp = () => {
             }));
             navigate('/login');
             dispatch(setUserEmail(""));
-            dispatch(setUserPwd(""));
+            dispatch(setUserPwd(""))
         } catch (err) {
             let errorMessage = "";
             if (err.code === 'auth/email-already-in-use') {
@@ -54,59 +57,64 @@ const SignUp = () => {
     };
 
     return (
-        loading ? <CircularProgress /> : <>
-            <Snackbar open={open} autoHideDuration={3500} onClose={closeSnackbar}>
-                <Alert
-                    onClose={closeSnackbar}
-                    severity="error"
-                    variant="filled"
-                    sx={{ fontSize: 18, mb: 4 }}
-                >
-                    {errMsg}
-                </Alert>
-            </Snackbar>
-            <Stack spacing={3}>
-                <TextField
-                    fullWidth
-                    variant="filled"
-                    label="Email"
-                    type="email"
-                    value={userEmail}
-                    onChange={(e) => dispatch(setUserEmail(e.target.value))}
-                />
-                <TextField
-                    fullWidth
-                    variant="filled"
-                    label="Password"
-                    type="password"
-                    value={userPwd}
-                    onChange={(e) => dispatch(setUserPwd(e.target.value))}
-                />
-            </Stack>
-            <Button
-                fullWidth
-                sx={{ marginY: 3 }}
-                color="success"
-                variant="contained"
-                onClick={() => {
-                    handleSignUp(userEmail, userPwd)
-                    openSnackbar()
-                }}
-            >
-                Register
-            </Button>
-            <Typography variant="body1" sx={{ letterSpacing: 1 }}>
-                Already registered?
+        loading ? (
+            <Box className="bg-white/65 p-5 rounded-3xl shadow-lg">
+                <CircularProgress color="success" size={50} />
+            </Box>
+        ) : (
+            <Box className="bg-white/60 p-7 rounded-xl shadow-lg">
+                {errMsg && (
+                    <Snackbar open={open} autoHideDuration={3500} onClose={closeSnackbar}>
+                        <Alert
+                            onClose={closeSnackbar}
+                            severity="error"
+                            variant="filled"
+                            sx={{ fontSize: 18, mb: 4 }}
+                        >
+                            {errMsg}
+                        </Alert>
+                    </Snackbar>
+                )}
+                <Stack spacing={3}>
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Email"
+                        type="email"
+                        value={userEmail}
+                        onChange={(e) => dispatch(setUserEmail(e.target.value))}
+                    />
+                    <TextField
+                        fullWidth
+                        variant="filled"
+                        label="Password"
+                        type="password"
+                        value={userPwd}
+                        onChange={(e) => dispatch(setUserPwd(e.target.value))}
+                    />
+                </Stack>
                 <Button
-                    onClick={() => navigate("/login")}
-                    sx={{ marginLeft: 2 }}
+                    fullWidth
+                    sx={{ marginTop: 5, marginBottom: 4 }}
                     color="success"
                     variant="contained"
+                    onClick={() => handleSignUp(userEmail, userPwd)}
                 >
-                    Sign In
+                    Register
                 </Button>
-            </Typography>
-        </>
+                <Typography variant="body1" sx={{ letterSpacing: 1.5 }}>
+                    Already registered?
+                    <Button
+                        onClick={() => !isAuth ? navigate("/login") : navigate("/")}
+                        sx={{ marginLeft: 2 }}
+                        color="success"
+                        variant="outlined"
+                    >
+                        {!isAuth ? "Sign In" : "Return to account"}
+                    </Button>
+                </Typography>
+            </Box>
+        )
     )
 }
 

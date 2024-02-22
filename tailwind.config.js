@@ -2,7 +2,14 @@
 export default {
   content: ["./index.html", "./src/**/*.{html,js,jsx}"],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "spin-slow": "spin 3s linear infinite",
+      },
+      backgroundColor: {
+        smooth: "rgba(0, 0, 0, 0.3)",
+      },
+    },
   },
   plugins: [],
 }

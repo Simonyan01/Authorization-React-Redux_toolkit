@@ -1,9 +1,10 @@
 import { selectData, setErrMsg, setLoading, setUserEmail, setUserPwd, setOpen, saveCreatedUser } from 'features/auth/sign_up/signUpSlice';
 import { Alert, Box, Button, CircularProgress, Snackbar, Stack, TextField, Typography } from '@mui/material';
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom";
 import { useAuth } from 'hooks/use-auth';
+import { auth } from 'utils/firebase';
 
 const SignUp = () => {
     const navigate = useNavigate()
@@ -18,10 +19,7 @@ const SignUp = () => {
         dispatch(setOpen(false))
     };
 
-
     const handleSignUp = async (email, password) => {
-        const auth = getAuth();
-
         dispatch(setLoading(true))
         setTimeout(() => {
             dispatch(setOpen(true));
@@ -36,7 +34,7 @@ const SignUp = () => {
                 id: user.uid,
                 token: user.accessToken,
             }));
-            navigate('/login');
+            navigate('/');
             dispatch(setUserEmail(""));
             dispatch(setUserPwd(""))
         } catch (err) {
@@ -45,11 +43,14 @@ const SignUp = () => {
                 errorMessage = "Email already exists. Please choose another one.";
             } else if (err.code === 'auth/weak-password') {
                 errorMessage = "Password should be at least 6 characters";
+            } else if (err.code === 'auth/missing-password') {
+                errorMessage = "The Password is missing";
             } else if (err.code === 'auth/invalid-email') {
                 errorMessage = "Invalid email or empty field. Please try again.";
             } else errorMessage = "An unexpected error occurred. Please try again.";
 
             dispatch(setErrMsg(errorMessage));
+            dispatch(setUserPwd(""))
             console.warn(err);
         } finally {
             dispatch(setLoading(false));
@@ -64,7 +65,7 @@ const SignUp = () => {
         ) : (
             <Box className="bg-white/60 p-7 rounded-xl shadow-lg">
                 {errMsg && (
-                    <Snackbar open={open} autoHideDuration={3500} onClose={closeSnackbar}>
+                    <Snackbar open={open} autoHideDuration={3000} onClose={closeSnackbar}>
                         <Alert
                             onClose={closeSnackbar}
                             severity="error"

@@ -1,8 +1,11 @@
-import { saveCreatedPosts, selectData, setAddedData, setDescriptions, setImages, setIsOpen } from 'features/main/mainSlice';
+import { deleteUserData, getUserPosts, postUserData, selectData, setAddedData, setDescription, setIsOpen, switchToActiveHeart } from 'features/main/mainSlice';
 import { Box, Button, Card, CardContent, Divider, Modal, TextField, Zoom } from '@mui/material';
+import FavoriteBorderSharpIcon from '@mui/icons-material/FavoriteBorderSharp';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useDispatch, useSelector } from 'react-redux';
 import ImageUploading from 'react-images-uploading';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Delete, RefreshRounded } from '@mui/icons-material';
 import { Mousewheel } from 'swiper/modules';
 import { useEffect } from 'react';
 import 'swiper/css/pagination';
@@ -10,55 +13,49 @@ import 'swiper/css';
 
 const Upload = () => {
     const dispatch = useDispatch()
-
-    const { isOpen, descriptions, addedData, images } = useSelector(selectData)
     const maxNumber = 10;
+
+    const { isOpen, description, addedData, images } = useSelector(selectData)
 
     const onChange = (imageList) => {
         console.log(imageList);
         dispatch(setAddedData(imageList));
     };
 
-    const handleToggle = () => {
-        dispatch(setIsOpen(!isOpen))
-    };
+    const handleToggle = () => dispatch(setIsOpen(!isOpen))
 
-    const handleDescriptionChange = (i, val) => {
-        const updatedDescriptions = [...descriptions];
-        updatedDescriptions[i] = val;
-        dispatch(setDescriptions(updatedDescriptions));
-    };
-
-    const handleAddPost = (i, image, onImageRemove) => {
-        if (!descriptions[i]?.trim()) {
+    const handleAddPost = (text, image, onImageRemove, i) => {
+        if (!text) {
             alert("Text is missing")
             return;
         }
-        dispatch(setImages([
-            ...images,
-            {
-                id: Math.random(),
-                title: descriptions[i],
-                image: image['data_url']
-            }
-        ]));
-        handleDescriptionChange(i, '');
+        dispatch(postUserData({
+            title: text.trim(),
+            image: image['data_url'],
+            isLiked: false
+        }))
+
+        setTimeout(() => {
+            dispatch(getUserPosts())
+        }, 100)
+
+        handleDescriptionChange(i, "")
         onImageRemove(i);
         handleToggle();
     };
 
-    useEffect(() => {
-        const storedPosts = JSON.parse(localStorage.getItem('posts'));
-        dispatch(setImages(storedPosts));
-    }, [dispatch]);
+    const handleDescriptionChange = (i, val) => {
+        const updatedDescriptions = [...description];
+        updatedDescriptions[i] = val;
+        dispatch(setDescription(updatedDescriptions));
+    };
 
     useEffect(() => {
-        localStorage.setItem('posts', JSON.stringify(images));
-        dispatch(saveCreatedPosts(images));
-    }, [images, dispatch]);
+        dispatch(getUserPosts())
+    }, [dispatch])
 
     return (
-        <Box className="w-full flex flex-col justify-between items-center gap-16">
+        <Box className="w-full flex flex-col items-center gap-14 ">
             <Button variant='contained' color='success' onClick={handleToggle}>
                 Create a publication
             </Button>
@@ -95,14 +92,16 @@ const Upload = () => {
                                 {({
                                     imageList,
                                     onImageUpload,
+                                    onImageUpdate,
                                     onImageRemove,
+                                    onImageRemoveAll,
                                     isDragging,
                                     dragProps,
                                     errors
                                 }) => (
                                     <>
                                         {errors && (
-                                            <Box className="text-center animate-bounce relative top-3 text-red-500 ">
+                                            <Box className="text-center animate-bounce relative top-3 text-red-500">
                                                 {errors.maxNumber && <span>Number of selected images exceed {maxNumber}</span>}
                                                 {errors.acceptType && <span>Your selected file type is not allowed {`[jpg, gif, png]`}</span>}
                                                 {errors.maxFileSize && <span>Selected file size exceed max file size</span>}
@@ -118,7 +117,11 @@ const Upload = () => {
                                                 drag or select from pc
                                             </Button>
                                         </Box>
-                                        <Box className="mt-4">
+                                        <RefreshRounded
+                                            onClick={() => onImageRemoveAll()}
+                                            className="text-white cursor-pointer float-right relative bottom-1"
+                                        />
+                                        <Box className="mt-7">
                                             <Swiper
                                                 slidesPerView={3}
                                                 spaceBetween={15}
@@ -128,7 +131,7 @@ const Upload = () => {
                                             >
                                                 {imageList.map((image, i) => (
                                                     <SwiperSlide key={i}>
-                                                        <Box className="flex relative text-white bg-black/20 p-3 rounded-lg">
+                                                        <Box className="flex text-white bg-black/20 p-3 rounded-lg">
                                                             <Button
                                                                 variant='text'
                                                                 color='inherit'
@@ -147,7 +150,6 @@ const Upload = () => {
                                                             <TextField
                                                                 sx={{
                                                                     paddingY: 1,
-                                                                    marginY: 1,
                                                                     '& .MuiFormLabel-root': {
                                                                         color: '#1976D2',
                                                                     },
@@ -159,14 +161,22 @@ const Upload = () => {
                                                                 label="Add description"
                                                                 variant="filled"
                                                                 color='primary'
-                                                                value={descriptions[i] || ''}
+                                                                value={description[i] || ''}
                                                                 onChange={(e) => handleDescriptionChange(i, e.target.value)}
                                                             />
                                                             <Button
-                                                                onClick={() => handleAddPost(i, image, onImageRemove)}
+                                                                onClick={() => {
+                                                                    handleAddPost(description[i], image, onImageRemove, i)
+                                                                }}
+                                                                variant="contained"
+                                                                sx={{ paddingX: 3, paddingY: 0.2, marginBottom: 1.3, marginTop: 0.4 }}>
+                                                                Add
+                                                            </Button>
+                                                            <Button
+                                                                onClick={() => onImageUpdate(i)}
                                                                 variant="contained"
                                                                 sx={{ paddingX: 3, paddingY: 0.2 }}>
-                                                                Add
+                                                                UPDATE
                                                             </Button>
                                                         </Box>
                                                     </SwiperSlide>
@@ -180,17 +190,37 @@ const Upload = () => {
                     </Card>
                 </Zoom>
             </Modal>
-            <Box className="flex flex-wrap gap-5 justify-evenly w-full px-4">
-                {images.map(({ id, title, image }) => (
-                    <Box className='bg-[rgba(0,0,0,0.22)] text-center rounded-2xl' key={id}>
-                        <img src={image} alt={title} width="150" />
-                        <Button sx={{ color: "white" }} variant='text'>{title}</Button>
+            <Box className="flex flex-wrap gap-5 justify-evenly  w-full h-full">
+                {images.map(({ id, title, image, isChecked }) => (
+                    <Box className='relative text-center bg-black/5 rounded-md flex flex-col select-none' key={id}>
+                        <button className='absolute right-0 m-2 outline-none'>
+                            {isChecked ? (
+                                <FavoriteIcon
+                                    className='text-red-600'
+                                    onClick={() => dispatch(switchToActiveHeart(id))}
+                                />
+                            ) : (
+                                <FavoriteBorderSharpIcon
+                                    className='text-white'
+                                    onClick={() => dispatch(switchToActiveHeart(id))}
+                                />
+                            )}
+                        </button>
+                        <img className='flex flex-grow object-center' src={image} alt={title} width="250" />
+                        <Box className='w-full flex justify-between items-center px-2 py-1 text-slate-900 shadow-md'>
+                            <span>{title}</span>
+                            <span className='cursor-pointer'>
+                                <Delete
+                                    className='hover:text-white hover:transition-all hover:duration-200'
+                                    onClick={() => dispatch(deleteUserData(id))}
+                                />
+                            </span>
+                        </Box>
                     </Box>
                 ))}
             </Box>
         </Box>
     );
 }
-
 
 export default Upload

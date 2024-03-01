@@ -14,6 +14,7 @@ export const getUserPosts = createAsyncThunk(
                     'Content-Type': 'application/json'
                 },
             })
+
             return res?.data
         } catch (err) {
             return thunkAPI.rejectWithValue(err.message || "Failed to get user posts")
@@ -41,22 +42,22 @@ export const postUserData = createAsyncThunk(
 
 // UPDATE METHOD
 
-// export const updateUserData = createAsyncThunk(
-//     "userData/updateUserData",
-//     async (newData, thunkAPI) => {
-//         try {
-//             const res = await API.put(`/images/${newData.id}`, newData, {
-//                 headers: {
-//                     'Content-Type': 'application/json'
-//                 },
-//             })
-//             console.log(res.data);
-//             return res?.data
-//         } catch (err) {
-//             return thunkAPI.rejectWithValue(err.message || "Failed to update user data")
-//         }
-//     }
-// )
+export const updateUserData = createAsyncThunk(
+    "userData/updateUserData",
+    async (newData, thunkAPI) => {
+        const { image } = newData;
+        try {
+            const res = await API.put(`/images/${image.id}`, image, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            return res?.data
+        } catch (err) {
+            return thunkAPI.rejectWithValue(err.message || "Failed to update user data")
+        }
+    }
+)
 
 // DELETE METHOD
 
@@ -65,7 +66,6 @@ export const deleteUserData = createAsyncThunk(
     async (id, thunkAPI) => {
         try {
             const res = await API.delete(`/images/${id}`)
-            console.log(res?.data);
             return res?.data
         } catch (err) {
             return thunkAPI.rejectWithValue(err.message || "Failed to delete user data")
@@ -88,7 +88,7 @@ const initialState = {
     email: '',
     password: '',
     errMsg: '',
-    successMsg: ''
+    successMsg: '',
 }
 
 const mainSlice = createSlice({
@@ -126,15 +126,6 @@ const mainSlice = createSlice({
         },
         setAnchorEl(state, action) {
             state.anchorEl = action.payload
-        },
-        switchToActiveHeart: (state, action) => {
-            const activeHeartId = action.payload
-
-            state.activeHeart = activeHeartId
-            state.images = state.images.map((item) => ({
-                ...item,
-                isChecked: item.id === activeHeartId ? !item.isChecked : item.isChecked,
-            }))
         }
     },
     extraReducers: (builder) => {
@@ -146,9 +137,22 @@ const mainSlice = createSlice({
             .addCase(getUserPosts.fulfilled, (state, action) => {
                 state.images = action.payload;
                 state.loading = false;
-                state.error = null
+                state.error = null;
             })
             .addCase(getUserPosts.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            })
+            // UPDATE
+            .addCase(updateUserData.pending, (state) => {
+                state.loading = true
+            })
+            .addCase(updateUserData.fulfilled, (state, action) => {
+                state.images = state.images.map(item => item.id !== action.payload.id ? item : action.payload);
+                state.loading = false;
+                state.error = null
+            })
+            .addCase(updateUserData.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message;
             })
@@ -171,7 +175,6 @@ const mainSlice = createSlice({
 export const {
     saveCreatedPosts, setErrMsg, setPassword, setEmail, setIsOpen,
     setIsLoading, setDescription, setAnchorEl, setAddedData,
-    setImages, switchToActiveHeart, setSuccessMsg
-} = mainSlice.actions;
+    setImages, setSuccessMsg } = mainSlice.actions;
 
 export default mainSlice.reducer;

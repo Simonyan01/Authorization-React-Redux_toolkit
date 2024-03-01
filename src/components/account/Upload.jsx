@@ -1,11 +1,11 @@
-import { deleteUserData, getUserPosts, postUserData, selectData, setAddedData, setDescription, setIsOpen, switchToActiveHeart } from 'features/main/mainSlice';
+import { deleteUserData, getUserPosts, postUserData, selectData, setAddedData, setDescription, setIsOpen, updateUserData } from 'features/main/mainSlice';
 import { Box, Button, Card, CardContent, Divider, Modal, TextField, Zoom } from '@mui/material';
 import FavoriteBorderSharpIcon from '@mui/icons-material/FavoriteBorderSharp';
+import { Delete, RefreshRounded } from '@mui/icons-material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useDispatch, useSelector } from 'react-redux';
 import ImageUploading from 'react-images-uploading';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Delete, RefreshRounded } from '@mui/icons-material';
 import { Mousewheel } from 'swiper/modules';
 import { useEffect } from 'react';
 import 'swiper/css/pagination';
@@ -18,11 +18,8 @@ const Upload = () => {
     const { isOpen, description, addedData, images } = useSelector(selectData)
 
     const onChange = (imageList) => {
-        console.log(imageList);
         dispatch(setAddedData(imageList));
     };
-
-    const handleToggle = () => dispatch(setIsOpen(!isOpen))
 
     const handleAddPost = (text, image, onImageRemove, i) => {
         if (!text) {
@@ -49,6 +46,14 @@ const Upload = () => {
         updatedDescriptions[i] = val;
         dispatch(setDescription(updatedDescriptions));
     };
+
+    const handleToggle = () => dispatch(setIsOpen(!isOpen))
+
+    const handleLikeToggle = (image) => {
+        dispatch(updateUserData({
+            image: image,
+        }))
+    }
 
     useEffect(() => {
         dispatch(getUserPosts())
@@ -191,33 +196,30 @@ const Upload = () => {
                 </Zoom>
             </Modal>
             <Box className="flex flex-wrap gap-5 justify-evenly  w-full h-full">
-                {images.map(({ id, title, image, isChecked }) => (
-                    <Box className='relative text-center bg-black/5 rounded-md flex flex-col select-none' key={id}>
-                        <button className='absolute right-0 m-2 outline-none'>
-                            {isChecked ? (
-                                <FavoriteIcon
-                                    className='text-red-600'
-                                    onClick={() => dispatch(switchToActiveHeart(id))}
-                                />
-                            ) : (
-                                <FavoriteBorderSharpIcon
-                                    className='text-white'
-                                    onClick={() => dispatch(switchToActiveHeart(id))}
-                                />
-                            )}
-                        </button>
-                        <img className='flex flex-grow object-center' src={image} alt={title} width="250" />
-                        <Box className='w-full flex justify-between items-center px-2 py-1 text-slate-900 shadow-md'>
-                            <span>{title}</span>
-                            <span className='cursor-pointer'>
-                                <Delete
-                                    className='hover:text-white hover:transition-all hover:duration-200'
-                                    onClick={() => dispatch(deleteUserData(id))}
-                                />
-                            </span>
+                {images.map((imageItem) => {
+                    const { id, title, image, isLiked } = imageItem;
+                    return (
+                        <Box className='relative text-center bg-black/5 rounded-md flex flex-col select-none' key={id}>
+                            <button className='absolute right-0 m-2 outline-none' onClick={() => handleLikeToggle({ ...imageItem, isLiked: !isLiked })}>
+                                {isLiked ? (
+                                    <FavoriteIcon className='text-red-600' />
+                                ) : (
+                                    <FavoriteBorderSharpIcon className='text-white' />
+                                )}
+                            </button>
+                            <img className='flex flex-grow object-center object-cover' src={image} alt={title} width="250" />
+                            <Box className='w-full flex justify-between items-center px-2 py-1 text-slate-900 shadow-md'>
+                                <span>{title}</span>
+                                <span className='cursor-pointer'>
+                                    <Delete
+                                        className='hover:text-white hover:transition-all hover:duration-200'
+                                        onClick={() => dispatch(deleteUserData(id))}
+                                    />
+                                </span>
+                            </Box>
                         </Box>
-                    </Box>
-                ))}
+                    )
+                })}
             </Box>
         </Box>
     );
